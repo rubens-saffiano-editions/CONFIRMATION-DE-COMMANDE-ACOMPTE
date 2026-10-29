@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Confirmation acompte — Rubens Saffiano</title>
+<meta name="theme-color" content="#F7F5F0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{--f:'Inter',-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;--fond:#F7F5F0;--texte:#111;--ligne:#d4cec4}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--fond);color:var(--texte);font-family:var(--f);font-weight:300;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+  header{height:52px;display:flex;align-items:center;justify-content:center;position:relative;flex:none}
+  header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:#e3ded5}
+  .marque{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase}
+  main{flex:1;max-width:480px;margin:0 auto;width:100%;padding:24px 24px 48px}
+  .titre{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #e3ded5}
+  .titre:first-child{margin-top:8px}
+  .intro{font-size:13px;color:#666;line-height:1.55;margin-bottom:8px}
+  .champ{margin-bottom:16px}
+  .champ label{display:block;font-size:10px;letter-spacing:.08em;color:#888;margin-bottom:4px;text-transform:uppercase}
+  .champ input,.champ select{width:100%;font-family:var(--f);font-size:15px;font-weight:300;color:var(--texte);border:0;border-bottom:1px solid var(--ligne);background:transparent;padding:9px 0 7px;outline:none;border-radius:0;appearance:none}
+  .champ input:focus,.champ select:focus{border-bottom-color:var(--texte)}
+  .grille{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .bouton{display:flex;align-items:center;justify-content:center;width:100%;margin-top:20px;background:var(--texte);color:var(--fond);border:1px solid var(--texte);padding:15px;font-family:var(--f);font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:all .3s}
+  .bouton:hover{background:transparent;color:var(--texte)}
+  .note{margin-top:20px;font-size:12px;color:#888;text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+<header><span class="marque">RUBENS SAFFIANO</span></header>
+<main>
+  <div class="titre">Confirmation avec acompte</div>
+  <p class="intro">Île-de-France — Remplissez puis générez le PDF.</p>
+
+  <div class="titre">01. Livraison</div>
+  <div class="grille">
+    <div class="champ"><label>Nom</label><input id="nom" type="text"></div>
+    <div class="champ"><label>Prénom</label><input id="prenom" type="text"></div>
+  </div>
+  <div class="champ"><label>Téléphone</label><input id="tel" type="tel"></div>
+  <div class="champ"><label>Adresse</label><input id="adresse" type="text"></div>
+  <div class="grille">
+    <div class="champ"><label>Code postal</label><input id="cp" type="text"></div>
+    <div class="champ"><label>Ville</label><input id="ville" type="text"></div>
+  </div>
+  <div class="champ"><label>Interphone / Code porte</label><input id="interphone" type="text"></div>
+
+  <div class="titre">02. Confirmation de tarif</div>
+  <div class="champ"><label>Qualité souhaitée</label><input id="qualite" type="text" placeholder="Ex. Prestige"></div>
+  <div class="champ"><label>Tarif total (€)</label><input id="tarif" type="text" inputmode="decimal" placeholder="Ex. 1265"></div>
+  <div class="champ"><label>Acompte (€)</label><input id="acompte" type="text" inputmode="decimal" placeholder="Ex. 500"></div>
+  <div class="champ"><label>Solde restant (€)</label><input id="solde" type="text" inputmode="decimal" placeholder="Ex. 765"></div>
+
+  <div class="titre">03. Détails et suppléments</div>
+  <div class="champ">
+    <label>Détails et suppléments</label>
+    <textarea id="precisions" rows="5" placeholder="Ex. Hermès Kelly 32 / Togo gold&#10;Option Packaging Exclusif : 45 €&#10;Option Shooting Photo : 5 €" style="width:100%;font-family:inherit;font-size:15px;font-weight:300;color:#111;border:0;border-bottom:1px solid #d4cec4;background:transparent;padding:9px 0 7px;outline:none;resize:vertical;min-height:90px;line-height:1.5;"></textarea>
+  </div>
+
+  <button class="bouton" id="generer">Générer le PDF</button>
+  <p class="note">Le PDF se télécharge automatiquement.</p>
+</main>
+
+<script>
+const {jsPDF}=window.jspdf;
+document.getElementById("generer").addEventListener("click",()=>{
+  const v=id=>document.getElementById(id).value.trim()||"—";
+  const nom=v("nom"),prenom=v("prenom"),tel=v("tel"),adresse=v("adresse");
+  const cp=v("cp"),ville=v("ville"),inter=v("interphone");
+  const qualite=v("qualite"),tarif=v("tarif"),acompte=v("acompte"),solde=v("solde");
+  const precisions=v("precisions");
+  const date=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+
+  const doc=new jsPDF({unit:"mm",format:"a4"});
+  const W=doc.internal.pageSize.getWidth();
+  const L=25, R=W-25;
+
+  // Fond crème
+  doc.setFillColor(250,248,244);
+  doc.rect(0,0,W,297,"F");
+
+  // ——— EN-TÊTE ———
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(14);
+  doc.setTextColor(20,20,20);
+  doc.text("RUBENS SAFFIANO", W/2, 26, {align:"center"});
+
+  doc.setFontSize(7.5);
+  doc.setTextColor(130,125,115);
+  doc.text("ÉDITIONS PRIVÉES  ·  CONFIRMATION AVEC ACOMPTE", W/2, 33, {align:"center"});
+
+  // Ligne unique élégante sous l'en-tête
+  doc.setDrawColor(190,184,174);
+  doc.setLineWidth(0.4);
+  doc.line(L, 39, R, 39);
+
+  let y = 52;
+
+  // ——— Fonctions de style ———
+  function sectionTitle(txt) {
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(9);
+    doc.setTextColor(30,30,30);
+    doc.text(txt, L, y);
+    y += 3;
+    doc.setDrawColor(190,184,174);
+    doc.setLineWidth(0.4);
+    doc.line(L, y, R, y);
+    y += 8;
+  }
+
+  function row(label, value) {
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9);
+    doc.setTextColor(130,125,115);
+    doc.text(label, L, y);
+    doc.setTextColor(25,25,25);
+    doc.setFontSize(10);
+    doc.text(String(value), L+48, y);
+    // fine line under value
+    doc.setDrawColor(220,215,205);
+    doc.setLineWidth(0.2);
+    doc.line(L+48, y+1.8, R, y+1.8);
+    y += 8;
+  }
+
+  // ——— 01 LIVRAISON ———
+  sectionTitle("01.  LIVRAISON");
+  row("Nom", nom);
+  row("Prénom", prenom);
+  row("Téléphone", tel);
+  row("Adresse", adresse);
+  row("Code postal", cp);
+  row("Ville", ville);
+  row("Interphone", inter);
+
+  y += 5;
+
+  // ——— 02 TARIF ———
+  sectionTitle("02.  CONFIRMATION DE TARIF");
+  row("Qualité", qualite);
+  row("Tarif total", tarif === "—" ? "—" : tarif + " €");
+  row("Acompte", acompte === "—" ? "—" : acompte + " €");
+  row("Solde restant", solde === "—" ? "—" : solde + " €");
+
+  y += 5;
+
+  // ——— 03 PRÉCISIONS ———
+  sectionTitle("03.  DÉTAILS ET SUPPLÉMENTS");
+  const BAS = 256; // dernière ligne de texte autorisée (le pied de page commence à 265)
+
+  function drawFooter() {
+    doc.setDrawColor(200,194,184);
+    doc.setLineWidth(0.35);
+    doc.line(L, 265, R, 265);
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(130,125,115);
+    doc.text("Ruben's Saffiano  ·  Confidentiel  ·  Atelier privé", W/2, 272, {align:"center"});
+    doc.setFontSize(7);
+    doc.text("Document à usage exclusif du client et de la maison", W/2, 278, {align:"center"});
+    doc.text("Date : " + date, W/2, 284, {align:"center"});
+  }
+
+  function newPage() {
+    drawFooter();
+    doc.addPage();
+    doc.setFillColor(250,248,244);
+    doc.rect(0,0,W,297,"F");
+    y = 25;
+  }
+
+  // Découpe le texte en lignes pour une taille de police donnée.
+  // Les retours à la ligne de l'utilisateur sont conservés.
+  // Une ligne entièrement entourée de ** ** s'affiche en gras (les ** sont retirés).
+  function mettreEnPage(size) {
+    const out = [];
+    precisions.split(/\n/).forEach(function(rl){
+      let bold = false;
+      const m = rl.trim().match(/^\*\*(.+)\*\*$/);
+      if (m) { bold = true; rl = m[1]; }
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      doc.setFontSize(size);
+      doc.splitTextToSize(rl.replace(/\*\*/g,""), R - L).forEach(function(t){
+        out.push({t:t, bold:bold});
+      });
+    });
+    return out;
+  }
+
+  // Choisit la plus grande police qui fait tenir tout le texte sur la page 1.
+  // Si même la plus petite ne suffit pas, le texte continue sur une page 2 (puis 3, etc.).
+  const tailles = [9.5, 9, 8.5, 8, 7.5];
+  let taille = tailles[tailles.length-1];
+  let lignes = mettreEnPage(taille);
+  let lh = taille * 0.3528 * 1.4;
+  for (let i = 0; i < tailles.length; i++) {
+    const s = tailles[i];
+    const l = mettreEnPage(s);
+    const h = s * 0.3528 * 1.4;
+    if (y + (l.length - 1) * h <= BAS) { taille = s; lignes = l; lh = h; break; }
+  }
+
+  doc.setTextColor(25,25,25);
+  lignes.forEach(function(ligne){
+    if (y > BAS) newPage();
+    doc.setFont("helvetica", ligne.bold ? "bold" : "normal");
+    doc.setFontSize(taille);
+    doc.setTextColor(25,25,25);
+    doc.text(ligne.t, L, y);
+    y += lh;
+  });
+
+  drawFooter();
+
+  const fname = ("Confirmation_" + prenom + "_" + nom + ".pdf").replace(/\s+/g,"_");
+  doc.save(fname);
+});
+</script>
+</body>
+</html>
